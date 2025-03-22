@@ -1,4 +1,25 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+
+@if (SignInManager.IsSignedIn(User)) // check if user is signed in
+{
+    // show signout btn
+}
+else
+{
+    // hide signout btn
+}
+
+@if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin")) // check if user is signed in and is an admin
+{
+    // show admin btns
+}
+else
+{
+    // hide admin btns
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
