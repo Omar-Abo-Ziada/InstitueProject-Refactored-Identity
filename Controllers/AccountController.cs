@@ -28,16 +28,18 @@ namespace InstitueProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RegisterAsAdmin(RegisterUserViewModel userVM)
         {
             if (ModelState.IsValid)
             {
                 ApplicationUser user = new ApplicationUser()
                 {
+                    //UserName= userVM.Email.Split('@')[0],
                     UserName = userVM.UserName,
                     PasswordHash = userVM.PassWord,
-                    Adress = userVM.Adress
+                    Adress = userVM.Adress,
+                    //isActive = true
                 };
 
                 IdentityResult createUserResult = await userManager.CreateAsync(user, user.PasswordHash);
@@ -45,7 +47,7 @@ namespace InstitueProject.Controllers
                 if (createUserResult.Succeeded)
                 {
                     //adding to to role before signing in
-                   IdentityResult roleResult = await userManager.AddToRoleAsync(user, "Admin");
+                    IdentityResult roleResult = await userManager.AddToRoleAsync(user, "Admin");
 
                     // create cookie
                     await signInManager.SignInAsync(user, isPersistent: false);  // session cookie
@@ -77,7 +79,7 @@ namespace InstitueProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterUserViewModel userVM )
+        public async Task<IActionResult> Register(RegisterUserViewModel userVM)
         {
             if (ModelState.IsValid)
             {
@@ -86,7 +88,7 @@ namespace InstitueProject.Controllers
                     UserName = userVM.UserName,
                     PasswordHash = userVM.PassWord,
                     Adress = userVM.Adress
-                    
+
                 };
 
                 IdentityResult createUserResult = await userManager.CreateAsync(user, user.PasswordHash);
@@ -131,7 +133,8 @@ namespace InstitueProject.Controllers
         {
             if (ModelState.IsValid)
             {
-                ApplicationUser userDB = await userManager.FindByNameAsync(userVM.UserName);
+                ApplicationUser? userDB = await userManager.FindByNameAsync(userVM.UserName);
+                //ApplicationUser? userDB = await userManager.FindByEmailAsync(userVM.Email);
 
                 if (userDB != null)
                 {
@@ -150,19 +153,20 @@ namespace InstitueProject.Controllers
                         // how to add in the claims
                         //add extra info to the claims to store in the cookie  not the data base
                         List<Claim> claims = new List<Claim>();
-                        claims.Add(new Claim("Institue" , "ITI"));
+                        claims.Add(new Claim("Institue", "ITI"));
 
                         //create cookie
-                        await signInManager.SignInWithClaimsAsync(userDB , userVM.RememberMe , claims);
+                        await signInManager.SignInWithClaimsAsync(userDB, userVM.RememberMe, claims,);
                         //await signInManager.SignInAsync(userDB, userVM.RememberMe);
 
                         return RedirectToAction("Index", "Home");
                     }
                 }
 
-                ModelState.AddModelError("", "Invalid Account");
+                ModelState.AddModelError("", "Incorrect Email or password");
+                return View(userVM);
             }
-            return View();
+            return View(userVM);
         }
 
         public async Task<IActionResult> LogOut()
@@ -173,4 +177,3 @@ namespace InstitueProject.Controllers
         }
     }
 }
-

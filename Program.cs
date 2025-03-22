@@ -15,18 +15,10 @@ namespace InstitueProject
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddDistributedMemoryCache();
-
-            builder.Services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromMinutes(60);
-                options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
-            });
-
-            // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddDistributedMemoryCache();
+          
             //***************************************************************************
 
             // register the built-in service 
@@ -46,14 +38,33 @@ namespace InstitueProject
                     options.Password.RequireLowercase = false;
                     options.Password.RequireDigit = false;
                 }
-            )
-                .AddEntityFrameworkStores<ITIContext>();
+            ).AddEntityFrameworkStores<ITIContext>()
+             .AddDefaultTokenProviders();
+
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.Name = "ITIProject"; // the name of the cookie should be unique and no sapces
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                options.SlidingExpiration = true;
+                options.LoginPath = "/Account/Login";
+                options.LogoutPath = "/Account/Logout";
+                options.AccessDeniedPath = "/Account/AccessDenied"; // if the user is not authorized
+            });
+
+            //builder.Services.AddSession(options =>
+            //{
+            //    options.IdleTimeout = TimeSpan.FromMinutes(60);
+            //    options.Cookie.HttpOnly = true;
+            //    options.Cookie.IsEssential = true;
+            //});
+
 
             // registering my custom services
-            builder.Services.AddScoped<IDepartmentRepository , DepartmentRepository>();  // registering
-            builder.Services.AddScoped<IInstructorRepository , InstructorRepository>();
-            builder.Services.AddScoped<ICourseRepository , CourseRepository>();
-            builder.Services.AddScoped<ITraineeRepository , TraineeRepository>();
+            builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();  // registering
+            builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
+            builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+            builder.Services.AddScoped<ITraineeRepository, TraineeRepository>();
 
             //****************************************************************************
 
@@ -80,7 +91,7 @@ namespace InstitueProject
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Account}/{action=Register}/{id?}");
             #endregion
 
             #region custom middlewares
